@@ -1,0 +1,153 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/**
+ * Two themes, one set of class names.
+ *
+ * Every colour in the interface is a variable, so a component says `bg-surface`
+ * and means the right thing in both themes. Writing `bg-white dark:bg-slate-900`
+ * on every element is the same design maintained twice, and the second copy is
+ * always the one that drifts.
+ *
+ * Channels rather than colours, so Tailwind's alpha modifiers keep working:
+ * `bg-brand/10` needs the components, not a finished rgb() string.
+ */
+
+:root {
+  color-scheme: light;
+
+  --canvas: 250 250 252;
+  --surface: 255 255 255;
+  --raised: 246 247 250;
+  --line: 226 230 237;
+
+  --ink: 15 23 42;
+  --muted: 71 85 105;
+  /* Darkened from 148 163 184, which measured 2.46:1 against this canvas --
+     well under the 4.5:1 WCAG asks of body text, and applied to the reasoning
+     and the metadata on every dense screen. 4.57:1 now, and still clearly
+     quieter than --muted at 7.27:1, so the hierarchy the three tokens exist
+     for survives. */
+  --faint: 100 116 139;
+
+  --brand: 8 145 178;
+  --brand-soft: 236 254 255;
+
+  --supported: 21 128 61;
+  --partial: 180 83 9;
+  --unsupported: 185 28 28;
+  --conflicting: 109 40 217;
+}
+
+.dark {
+  color-scheme: dark;
+
+  /* Not pure black. A true #000 makes every surface above it look like a
+     floating rectangle, and long-form reading on it is harsh. This is a very
+     dark blue-grey, which keeps the elevation steps visible. */
+  --canvas: 9 11 16;
+  --surface: 15 18 25;
+  --raised: 22 26 35;
+  --line: 38 44 56;
+
+  --ink: 226 232 240;
+  --muted: 148 163 184;
+  /* Lightened from 100 116 139, which measured 4.14:1 -- under 4.5:1 here too,
+     though nothing like as far under as the light theme was. 5.69:1 now. */
+  --faint: 124 139 162;
+
+  /* Brighter and less saturated than the light-mode brand. A colour tuned for
+     white will look dull and muddy on near-black; the same hex is not the same
+     colour to an eye adapted to a dark screen. */
+  --brand: 34 211 238;
+  --brand-soft: 8 51 68;
+
+  --supported: 74 222 128;
+  --partial: 251 191 36;
+  --unsupported: 248 113 113;
+  --conflicting: 167 139 250;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: rgb(var(--canvas));
+  color: rgb(var(--ink));
+}
+
+/* The theme swap is animated, but only the colours -- a transition on `all`
+   would drag every layout change through 200ms of easing too. */
+body,
+body * {
+  transition-property: background-color, border-color, color, fill;
+  transition-duration: 200ms;
+  transition-timing-function: ease;
+}
+
+/**
+ * Motion is decoration, and some people get sick from it.
+ *
+ * Honouring the OS setting is not a nicety: vestibular disorders make
+ * translate-and-fade genuinely unpleasant, and the entire interface works
+ * without a single one of these animations.
+ */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* A citation jumped to from the prose. The flash is what tells a reader their
+   click landed -- a scroll with no acknowledgement reads as a page that moved
+   on its own.
+
+   Driven by a class rather than `:target`, because `:target` is already
+   satisfied when the same citation is clicked twice and would never re-fire. */
+.citation-hit {
+  animation: flash 1.6s ease-out;
+}
+
+/* The reading measure, and it was set from the wrong unit.
+ *
+ * A `ch` is the width of a zero, and a zero is wider than the average letter:
+ * measured on a real report a character averages 7.74px while a `ch` is
+ * 10.07px. So `70ch` was not 70 characters a line, it was 89 -- past the range
+ * typography has settled on, on the one screen in this application built to be
+ * read rather than scanned.
+ *
+ * 58ch measures at a median of 71 characters across the paragraphs of a real
+ * report. Kept in `ch` so it still tracks the type size; corrected by measuring
+ * the rendered text rather than by trusting the unit's name. */
+.prose-report {
+  margin-inline: auto;
+  max-width: 58ch;
+}
+
+/* A tab strip has to scroll on a narrow screen, and `overflow-x: auto` makes
+ * the browser reserve and paint a scrollbar even where there is nothing to
+ * scroll -- a one-pixel line across the tab row of every report on a desktop.
+ * Scrolling is untouched; only the track is hidden, which is what a tab strip
+ * does on iOS for the same reason. */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+::selection {
+  background-color: rgb(var(--brand) / 0.25);
+}
